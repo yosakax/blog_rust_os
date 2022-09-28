@@ -19,8 +19,10 @@ pub extern "C" fn _start() -> ! {
 
     for (i, &byte) in HELLO.iter().enumerate() {
         unsafe {
+            // 特定のメモリの位置に値を代入しているだけ
             *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
+            // 出力文字の色指定
+            *vga_buffer.offset(i as isize * 2 + 1) = 0xa;
         }
     }
 
