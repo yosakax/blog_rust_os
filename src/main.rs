@@ -14,10 +14,15 @@ use core::panic::PanicInfo;
 pub extern "C" fn _start() -> ! {
     println!("Asumi Kana");
     // panic!("some panic message!");
+    blog_rust_os::init();
+
+    // breakpoint exceptionを起こす
+    x86_64::instructions::interrupts::int3();
 
     #[cfg(test)]
     test_main();
 
+    println!("it did not clash!");
     loop {}
 }
 

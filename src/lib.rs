@@ -2,12 +2,22 @@
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
-#![reexport_test_harness_main = "test_main"] // なにこれ
+// なにこれ
+#![reexport_test_harness_main = "test_main"]
+// ABI呼び出し規約が不安定なためx86-interruptsを使うとエラーが出るので，
+// それを強制的に使用するために以下を記述
+#![feature(abi_x86_interrupt)]
 
 use core::panic::PanicInfo;
-
+pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
+
+// init_idtをmain.rsから間接的に呼び出す一般的なinit関数
+// ここに書けばテストでも使用できるのでうれしい
+pub fn init() {
+    interrupts::init_idt();
+}
 
 pub trait Testable {
     fn run(&self) -> ();
@@ -26,7 +36,7 @@ where
     }
 }
 
-pub fn test_runner(tests: &[&dyn Fn()]) {
+pub fn test_runner(tests: &[&dyn Testable]) {
     // println!("Running {} tests", tests.len());
     serial_println!("Running {} tests!", tests.len());
     for test in tests {
@@ -63,6 +73,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
     loop {}
 }
